@@ -9,6 +9,10 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 @NativePlugin()
 public class WebView extends Plugin {
   public static final String WEBVIEW_PREFS_NAME = "CapWebViewSettings";
@@ -17,7 +21,35 @@ public class WebView extends Plugin {
   @PluginMethod()
   public void setServerBasePath(PluginCall call) {
     String path = call.getString("path");
-    bridge.setServerBasePath(path);
+    Map<String, String> additionalHttpHeaders = new HashMap<>();
+    JSObject headers = call.getObject("headers");
+
+    Iterator<String> it = headers.keys();
+
+    while (it.hasNext()) {
+      String key = (String) it.next();
+
+      if (key.isEmpty()) {
+        call.error("one of headers key is missing");
+        break;
+      }
+
+      String val = headers.getString("key");
+
+      if (val.isEmpty()) {
+        call.error("value for " + key + " is missing");
+        break;
+      }
+
+      additionalHttpHeaders.put(key, val);
+    }
+
+    if (!additionalHttpHeaders.isEmpty()) {
+      bridge.setServerBasePath(path, additionalHttpHeaders);
+    } else {
+      bridge.setServerBasePath(path);
+    }
+    
     call.success();
   }
 

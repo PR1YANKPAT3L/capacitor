@@ -887,6 +887,16 @@ public class Bridge {
     });
   }
 
+  public void setServerBasePath(String path, Map<String, String> additionalHttpHeaders){
+    localServer.hostFiles(path);
+    webView.post(new Runnable() {
+      @Override
+      public void run() {
+        webView.loadUrl(appUrl, additionalHttpHeaders);
+      }
+    });
+  }
+
 
   public String getLocalUrl() {
     return localUrl;
