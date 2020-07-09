@@ -258,17 +258,26 @@ public class CAPCameraPlugin : CAPPlugin, UIImagePickerControllerDelegate, UINav
   }
 
   func resizeImage(_ image: UIImage) -> UIImage? {
-    let isAspectScale = settings.width > 0 && settings.height == 0 || settings.height > 0 && settings.width == 0
-    let aspect = Float(image.size.width / image.size.height);
-
-    var size = CGSize.init(width: Int(settings.width), height: Int(settings.height))
-    if isAspectScale {
-      if settings.width > 0 {
-        size = CGSize.init(width: Int(settings.width), height: Int(settings.width * (1/aspect)))
-      } else if settings.height > 0 {
-        size = CGSize.init(width: Int(settings.height * aspect), height: Int(settings.height))
-      }
+    let width: Int = image.width
+    let height: Int = image.height
+    
+    let desiredMaxWidth: Int = settings.width
+    let desiredMaxHeight: Int = settings.height
+    
+    // 0 is treated as 'no restriction'
+    let maxWidth: Int = desiredMaxWidth == 0 ? width : desiredMaxWidth
+    let maxHeight: Int = desiredMaxHeight == 0 ? height : desiredMaxHeight
+    
+    // resize with preserved aspect ratio
+    let newWidth: Float = min(width, maxWidth)
+    let newHeight: Float = (height * newWidth) / width
+    
+    if newHeight > maxHeight {
+        newWidth = (width * maxHeight) / height
+        newHeight = maxHeight
     }
+    
+    var size = CGSize.init(width: Int(newWidth), height: Int(newHeight))
 
     UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
     image.draw(in: CGRect(origin: CGPoint.zero, size: size))
